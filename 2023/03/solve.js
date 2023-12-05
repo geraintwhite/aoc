@@ -12,7 +12,7 @@ const example = `467..114..
 .664.598..`.split('\n')
 
 const getInput = () => {
-  const input = fs.readFileSync('./input.txt')
+  const input = fs.readFileSync(__dirname + '/input.txt')
   return input.toString().split('\n').slice(0, -1)
 }
 

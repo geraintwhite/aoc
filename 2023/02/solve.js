@@ -9,7 +9,7 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green`.split('\n')
 const total = { red: 12, green: 13, blue: 14 }
 
 const getInput = () => {
-  const input = fs.readFileSync('./input.txt')
+  const input = fs.readFileSync(__dirname + '/input.txt')
   return input.toString().split('\n').slice(0, -1)
 }
 
