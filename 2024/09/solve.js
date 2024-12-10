@@ -62,13 +62,42 @@ const part2 = (input) => {
     } 
   }
 
-  const tmp = filled.reduce((arr, block) => [...arr, ...Array(block.l).fill(block.t === 'e' ? '.' : block.n)], [])
-  const sum = tmp.reduce((s, n, i) => s + (n === '.' ? 0 : n) * i, 0)
-
   return filled.reduce(({ sum, index }, block) => ({
     sum: block.t === 'e' ? sum : sum + Array(block.l).fill(block.n).reduce((t, n, x) => t + n * (index + x), 0),
     index: index + block.l
   }), { sum: 0, index: 0 }).sum
+}
+
+const part2b = (input) => {
+  const map = []
+  let start = 0
+  for (let i = 0; i < input[0].length; i++) {
+    const size = Number(input[0][i])
+    map.push({ type: i % 2 ? 'space' : 'file', index: i / 2, size, start })
+    start += size
+  }
+
+  for (let i = map.length - 1; i > -1; i--) {
+    const block = map[i]
+    if (block.type === 'space' || block.checked) continue
+    const spaceIndex = map.findIndex(({ type, size }) => type === 'space' && size >= block.size)
+    if (spaceIndex === -1 || spaceIndex >= i) {
+      block.checked = true
+      continue
+    }
+    const space = map[spaceIndex]
+    map.splice(spaceIndex, 1, { ...block, start: space.start, checked: true })
+    map.splice(spaceIndex + 1, 0, { type: 'space', size: space.size - block.size, start: space.start + block.size })
+  }
+
+  let total = 0
+  for (const block of map) {
+    if (!block.checked) continue
+    for (let j = 0; j < block.size; j++) {
+      total += (block.start + j) * block.index
+    }
+  }
+  return total
 }
 
 console.log('\nPart 1\n')
@@ -80,4 +109,5 @@ console.log(part1b(getInput()))
 console.log('\nPart 2\n')
 
 console.log(part2(example))
-console.log(part2(getInput()))
+console.log(part2b(example))
+console.log(part2b(getInput()))
