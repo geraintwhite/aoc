@@ -81,7 +81,7 @@ const part2b = (input) => {
     const block = map[i]
     if (block.type === 'space' || block.checked) continue
     const spaceIndex = map.findIndex(({ type, size }) => type === 'space' && size >= block.size)
-    if (spaceIndex === -1 || spaceIndex >= i) {
+    if (spaceIndex === -1 || spaceIndex > i) {
       block.checked = true
       continue
     }
