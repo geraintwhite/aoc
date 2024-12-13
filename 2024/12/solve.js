@@ -70,7 +70,7 @@ const getDiscountedPrice = (fence) => {
   for (const d of Object.values(edges)) {
     for (const dd of Object.values(d)) {
       n++
-      const sorted = dd.slice().sort()
+      const sorted = dd.slice().sort((a, b) => a - b)
       for (const x in sorted) {
         if (sorted[x] - sorted[x-1] > 1) n++
       }
@@ -113,4 +113,4 @@ console.log('\nPart 2\n')
 
 console.log(part2(example))
 console.log(part2(example2))
-console.log(part2(getInput())) // 888039 is too low
+console.log(part2(getInput()))
