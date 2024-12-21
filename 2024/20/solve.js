@@ -28,39 +28,40 @@ const directions = [
   { dx: -1, dy: 0 },
 ]
 
-const getKey = ({ x, y, d = 0 }) => `${y}-${x}-${d}`
+const getKey = ({ x, y }) => `${y}-${x}`
 
 const getLowestScore = (input) => {
   const startY = input.findIndex((line) => line.includes('S'))
   const startX = input[startY].indexOf('S')
 
   let score = Infinity
-  let queue = [{ x: startX, y: startY, s: 0 }]
+  let queue = [{ x: startX, y: startY, s: 0, p: [] }]
 
   const scores = {}
+  const paths = []
 
   while (queue.length) {
     const newQueue = []
 
-    for (const { x, y, d, s, p } of queue) {
+    for (const { x, y, s, p } of queue) {
       if (input[y][x] === '#' || scores[getKey({ x, y })] < s) continue
-      scores[getKey({ x, y, d })] = s
+      scores[getKey({ x, y })] = s
 
       if (input[y][x] === 'E') {
         score = Math.min(score, s)
+        paths.push([...p, { x, y }])
         continue
       }
 
-      const dirs = [d, (d + 1) % 4, (d + 3) % 4]
       for (const { dx, dy } of directions) {
-        newQueue.push({ x: x + dx, y: y + dy, s: s + 1 })
+        newQueue.push({ x: x + dx, y: y + dy, s: s + 1, p: [...p, { x, y }] })
       }
     }
 
     queue = newQueue
   }
 
-  return { score }
+  return { score, paths }
 }
 
 const part1 = (input, saving) => {
@@ -78,15 +79,42 @@ const part1 = (input, saving) => {
   return scores.filter((s) => base - s >= saving).length
 }
 
-const part2 = (input) => {
+const manhattan = (a, b) => {
+  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
+}
+
+const getShortcuts = (path, limit) => {
+  const shortcuts = []
+  for (let i = 0; i < path.length; i++) {
+    for (let j = i + 1; j < path.length; j++) {
+      const a = path[i], b = path[j]
+      const dist = manhattan(a, b)
+      if (dist <= limit) {
+        shortcuts.push({ a, b, s: Math.abs(path.indexOf(a) - path.indexOf(b)) - dist })
+      }
+    }
+  }
+  return shortcuts
+}
+
+const part1b = (input, saving) => {
+  const { paths } = getLowestScore(input)
+  const shortcuts = getShortcuts(paths[0], 2)
+  return shortcuts.filter(({ s }) => s >= saving).length
+}
+
+const part2 = (input, saving) => {
+  const { paths } = getLowestScore(input)
+  const shortcuts = getShortcuts(paths[0], 20)
+  return shortcuts.filter(({ s }) => s >= saving).length
 }
 
 console.log('\nPart 1\n')
 
 console.log(part1(example, 20))
-console.log(part1(getInput(), 100))
+console.log(part1b(getInput(), 100))
 
 console.log('\nPart 2\n')
 
-console.log(part2(example))
-console.log(part2(getInput()))
+console.log(part2(example, 74))
+console.log(part2(getInput(), 100))
