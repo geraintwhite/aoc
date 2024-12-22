@@ -35,6 +35,8 @@ const combo = ({ a, b, c }, n) => {
   return n
 }
 
+const mod = (n, d) => ((n % d) + d) % d
+
 const compute = ({ a, b, c, i }) => {
   const r = { a, b, c }
   const o = []
@@ -43,10 +45,10 @@ const compute = ({ a, b, c, i }) => {
     const n = i[p]
     if (n === 0) r.a = Math.floor(r.a / (2 ** combo(r, i[p + 1])))
     if (n === 1) r.b = r.b ^ i[p + 1]
-    if (n === 2) r.b = combo(r, i[p + 1]) % 8
+    if (n === 2) r.b = mod(combo(r, i[p + 1]), 8)
     if (n === 3) p = r.a === 0 ? p : i[p + 1] - 2
     if (n === 4) r.b = r.b ^ r.c
-    if (n === 5) o.push(combo(r, i[p + 1]) % 8)
+    if (n === 5) o.push(mod(combo(r, i[p + 1]), 8))
     if (n === 6) r.b = Math.floor(r.a / (2 ** combo(r, i[p + 1])))
     if (n === 7) r.c = Math.floor(r.a / (2 ** combo(r, i[p + 1])))
     p += 2
@@ -77,6 +79,26 @@ const part2b = (input) => {
   return n = (parseInt(t, 8) - parseInt(o, 8)) * 8 + a
 }
 
+const findRegisterA = (i, t) => {
+  if (!t.length) return [0]
+  const candidates = findRegisterA(i, t.slice(1))
+  let values = []
+  for (let x = 0; x < 8; x++) {
+    for (const candidate of candidates) {
+      const a = x + candidate * 8
+      if (compute({ a, b: 0, c: 0, i }).join(',') === t.join(',')) {
+        values.push(a)
+      }
+    }
+  }
+  return values
+}
+
+const part2c = (input) => {
+  const { i } = process(input)
+  return Math.min(...findRegisterA(i, i))
+}
+
 console.log('\nPart 1\n')
 
 console.log(part1(example))
@@ -86,4 +108,6 @@ console.log('\nPart 2\n')
 
 console.log(part2(example2))
 console.log(part2b(example2))
+console.log(part2c(example2))
 console.log(part2b(getInput())) // 119136809579051 too high
+console.log(part2c(getInput()))
