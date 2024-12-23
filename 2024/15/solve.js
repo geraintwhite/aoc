@@ -75,18 +75,56 @@ const process = (input, wide) => {
   return { width, height, instructions, boxes, walls, robots }
 }
 
+const checkWideBoxes = ({ x, y }, { dx, dy }, boxes, box=false) => {
+  const checkBoxes = []
+  if (dx === -1) checkBoxes.push(boxes.find(b => b === getKey({ x: x-2, y })))
+  if (dx === 1) checkBoxes.push(boxes.find(b => b === getKey({ x: x+(box ? 2 : 1), y })))
+  if (dy === -1) checkBoxes.push(boxes.find(b => b === getKey({ x, y: y-1 })), boxes.find(b => b === getKey({ x: x-1, y: y-1 })))
+  if (dy === 1) checkBoxes.push(boxes.find(b => b === getKey({ x, y: y+1 })), boxes.find(b => b === getKey({ x: x-1, y: y+1 })))
+  return checkBoxes.filter(Boolean)
+}
+
+const moveBox = (box, { dx, dy }, boxes, walls, move=false) => {
+  const [y, x] = box.split(',').map(Number)
+  if (dx === -1 && walls.includes(getKey({ x: x-1, y }))) return false
+  if (dx === 1 && walls.includes(getKey({ x: x+2, y }))) return false
+  if (dy === -1 && (walls.includes(getKey({ x, y: y-1 })) || walls.includes(getKey({ x: x+1, y: y-1 })))) return false
+  if (dy === 1 && (walls.includes(getKey({ x, y: y+1 })) || walls.includes(getKey({ x: x+1, y: y+1 })))) return false
+  const checkBoxes = dy === 0 ?
+    checkWideBoxes({ x, y }, { dx, dy }, boxes, true) :
+    [...checkWideBoxes({ x, y }, { dx, dy }, boxes), ...checkWideBoxes({ x: x+1, y }, { dx, dy }, boxes)]
+  let canMove = true
+  for (const box of checkBoxes) {
+    if (!moveBox(box, { dx, dy }, boxes, walls, move)) canMove = false
+  }
+  if (canMove && move) {
+    boxes[boxes.indexOf(box)] = getKey({ x: x+dx, y: y+dy })
+  }
+  return canMove
+}
+
 const move = ({ x, y }, { dx, dy }, boxes, walls, wide) => {
   const newPos = { x: x + dx, y: y + dy }
-  const newPosWide = { x: x + dx * 2, y: y + dy }
   if (walls.includes(getKey(newPos))) return { x, y }
-  if (boxes.includes(getKey(wide ? newPosWide : newPos))) {
-    const boxPos = { ...newPosWide }
+  if (wide) {
+    const checkBoxes = checkWideBoxes({ x, y }, { dx, dy }, boxes)
+    if (!checkBoxes.length) return newPos
+    let canMove = true
+    for (const box of checkBoxes) {
+      if (!(moveBox(box, { dx, dy }, boxes, walls) && moveBox(box, { dx, dy }, boxes, walls, true))) {
+        canMove = false
+      }
+    }
+    return canMove ? newPos : { x, y }
+  }
+  if (boxes.includes(getKey(newPos))) {
+    const boxPos = { ...newPos }
     while (boxes.includes(getKey(boxPos))) {
-      boxPos.x += wide ? dx * 2 : dx
+      boxPos.x += dx
       boxPos.y += dy
     }
     if (walls.includes(getKey(boxPos))) return { x, y }
-    boxes[boxes.indexOf(getKey(newPosWide))] = getKey(boxPos)
+    boxes[boxes.indexOf(getKey(newPos))] = getKey(boxPos)
   }
   return newPos
 }
@@ -102,7 +140,6 @@ const print = (width, height, boxes, walls, robot) => {
     for (let x = 0; x < width * 2; x++) {
       if (walls.includes(getKey({ x, y }))) output += '#'
       else if (boxes.includes(getKey({ x, y }))) output += '['
-      else if (boxes.includes(getKey({ x: x - 1, y }))) output += ']'
       else if (boxes.includes(getKey({ x: x - 1, y }))) output += ']'
       else if (robot.x === x && robot.y === y) output += '@'
       else output += '.'
@@ -129,6 +166,7 @@ const part2 = (input) => {
     robot = move(robot, instruction, boxes, walls, true)
     print(width, height, boxes, walls, robot)
   }
+  print(width, height, boxes, walls, robot)
   return boxes.reduce((total, key) => total + gps(key), 0)
 }
 
@@ -141,5 +179,5 @@ console.log(part1(getInput()))
 console.log('\nPart 2\n')
 
 console.log(part2(example1b))
-//console.log(part2(example2))
-//console.log(part2(getInput()))
+console.log(part2(example2))
+console.log(part2(getInput()))
