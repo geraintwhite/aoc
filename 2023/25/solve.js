@@ -1,6 +1,18 @@
 const fs = require('fs')
 
-const example = ``.split('\n')
+const example = `jqt: rhn xhk nvd
+rsh: frs pzl lsr
+xhk: hfx
+cmg: qnr nvd lhk bvb
+rhn: xhk bvb hfx
+bvb: xhk hfx
+pzl: lsr hfx nvd
+qnr: nvd
+ntq: jqt hfx bvb xhk
+nvd: lhk
+lsr: lhk
+rzs: qnr cmg lsr rsh
+frs: qnr lhk lsr`.split('\n')
 
 const getInput = () => {
   const input = fs.readFileSync(__dirname + '/input.txt')
