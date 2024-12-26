@@ -59,6 +59,26 @@ hwm AND bqk -> z03
 tgd XOR rvg -> z12
 tnw OR pbm -> gnj`.split('\n')
 
+const example3 = `x00: 0
+x01: 1
+x02: 0
+x03: 1
+x04: 0
+x05: 1
+y00: 0
+y01: 0
+y02: 1
+y03: 1
+y04: 0
+y05: 1
+
+x00 AND y00 -> z05
+x01 AND y01 -> z02
+x02 AND y02 -> z01
+x03 AND y03 -> z03
+x04 AND y04 -> z04
+x05 AND y05 -> z00`.split('\n')
+
 const getInput = () => {
   const input = fs.readFileSync(__dirname + '/input.txt')
   return input.toString().split('\n').slice(0, -1)
@@ -97,8 +117,20 @@ const simulate = (values, instructions) => {
   }
 }
 
-const output = (values) => {
-  const keys = Object.keys(values).filter((k) => k.startsWith('z')).sort().reverse()
+const findSwaps = (instructions) => {
+  return instructions.filter(({ a, b, c, o }) => {
+    return (
+      (c.startsWith('z') && o !== 'XOR' && c !== 'z45') ||
+      (!c.startsWith('z') && o === 'XOR' && [a, b].every((x) => !x.startsWith('x') && !x.startsWith('y'))) ||
+      (o === 'XOR' && instructions.some((i) => i.o === 'OR' && [i.a, i.b].includes(c))) ||
+      (o === 'AND' && [a, b].every((x) => !['x00', 'y00'].includes(x)) && !instructions.some((i) => [i.a, i.b].includes(c) && i.o === 'OR')) ||
+      (o === 'OR' && !instructions.some((i) => [a, b].includes(i.c) && i.o === 'AND'))
+    )
+  })
+}
+
+const output = (values, prefix='z') => {
+  const keys = Object.keys(values).filter((k) => k.startsWith(prefix)).sort().reverse()
   return parseInt(keys.map((k) => values[k]).join(''), 2)
 }
 
@@ -109,6 +141,8 @@ const part1 = (input) => {
 }
 
 const part2 = (input) => {
+  const { instructions } = process(input)
+  return findSwaps(instructions).map(x => x.c).sort().join(',')
 }
 
 console.log('\nPart 1\n')
@@ -119,5 +153,5 @@ console.log(part1(getInput()))
 
 console.log('\nPart 2\n')
 
-console.log(part2(example))
+console.log(part2(example3))
 console.log(part2(getInput()))
